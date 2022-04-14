@@ -3,8 +3,10 @@ from flask_login import LoginManager, login_required
 from flask_login import current_user, login_user, logout_user
 from data import db_session
 from data.user import User
+from data.building import Building
 from forms.login_form import LoginForm
 from forms.register_form import RegisterForm
+from forms.building_form import BuildingForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'flask_secret_key'
@@ -28,6 +30,14 @@ def load_user(user_id):
 def logout():
     logout_user()
     return redirect("/")
+
+
+@app.route('/')
+@app.route('/index')
+def index():
+    db_sess = db_session.create_session()
+    buildings = db_sess.query(Building).all()
+    return render_template("index.html", title="Выбор корпуса", buildings=buildings, apikey=geocoder_key)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -71,11 +81,25 @@ def reqister():
     return render_template('register.html', title='Регистрация', form=form)
 
 
-@app.route('/')
-@app.route('/index')
-def index():
-    return render_template("index.html", title="map", apikey=geocoder_key)
-
+@app.route('/add_building',  methods=['GET', 'POST'])
+@login_required
+def add_building():
+    form = BuildingForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        if db_sess.query(Building).filter(Building.number == form.number.data).first():
+            return render_template('building.html', title='Добавление корпуса',
+                                   form=form,
+                                   message="Такой корпус уже есть")
+        building = Building()
+        building.number = form.number.data
+        building.address = form.address.data
+        building.floors_count = form.floors_count.data
+        db_sess.add(building)
+        db_sess.commit()
+        return redirect('/')
+    return render_template('building.html', title='Добавление корпуса', 
+                           form=form)
 
 if __name__ == '__main__':
     app.run(port=8080, host='127.0.0.1')

@@ -1,19 +1,41 @@
 {% extends "base.html" %}
 
 {% block head %}
-    <script src="https://api-maps.yandex.ru/2.1/?apikey={{ apikey }}&lang=ru_RU" type="text/javascript"></script>
-    <script src="{{ url_for('static', filename='map.js') }}"></script>
+<script src="https://api-maps.yandex.ru/2.1/?apikey={{ apikey }}&lang=ru_RU" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='map.js') }}"></script>
 {% endblock %}
-
 {% block content %}
-    <div class="row">
-      <aside class="col-xs">
-	{% if current_user.is_authenticated %}
-        <a class="btn btn-success" href="/login">Панель управления</a>
-	{% endif %}
-      </aside>
-      <div class="col-xl">
-	<div id="map"-class="mx-auto shadow p-1 mb-5 bg-body border rounded"></div>
-      </div>
-    </div>
+<h1>Выбор корпуса</h1>
+<div class="row">
+  <div class="col-md">
+    <div id="map" class="mx-auto shadow p-1 mb-5 bg-body border rounded"></div>
+  </div>
+  <div class="col-xl">
+    <table class="table table-striped">
+      <thead>
+	<tr>
+	  <th scope="col">#</th>
+	  <th scope="col">Номер корпуса</th>
+	  <th scope="col">Количество этажей</th>
+	  <th scope="col">Адрес</th>
+	</tr>
+      </thead>
+      <tbody>
+	{% for building in buildings %}
+	<tr>
+	  <th scope="row">{{ index }}</th>
+	  <td>{{ building.number }}</td>
+	  <td>{{ building.floors_count }}</td>
+	  <td>{{ building.address }}</td>
+	</tr>
+	{% endfor %}
+      </tbody>
+    </table>
+    {% if current_user.is_authenticated %}
+    <a href="/add_building" class="btn btn-primary">
+      Добавить корпус
+    </a>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}
