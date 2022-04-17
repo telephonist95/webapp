@@ -2,6 +2,7 @@
 
 {% block head %}
 <script src="https://api-maps.yandex.ru/2.1/?apikey={{ apikey }}&lang=ru_RU" type="text/javascript"></script>
+<script>var buildings = {{buildings | tojson}}</script>
 <script src="{{ url_for('static', filename='map.js') }}"></script>
 {% endblock %}
 {% block content %}
@@ -10,8 +11,13 @@
   <div class="col-md">
     <div id="map" class="mx-auto shadow p-1 mb-5 bg-body border rounded"></div>
   </div>
-  <div class="col-xl">
-    <table class="table table-striped">
+  <div class="col-md">
+    {% if current_user.is_authenticated %}
+    <a href="/add_building" class="btn btn-primary my-3">
+      Добавить корпус
+    </a>
+    {% endif %}
+    <table class="table table-sm table-hover">
       <thead>
 	<tr>
 	  <th scope="col">#</th>
@@ -23,19 +29,24 @@
       <tbody>
 	{% for building in buildings %}
 	<tr>
-	  <th scope="row">{{ index }}</th>
-	  <td>{{ building.number }}</td>
-	  <td>{{ building.floors_count }}</td>
-	  <td>{{ building.address }}</td>
+	  <th scope="row">{{ loop.index }}</th>
+	  <td><a href="/building/{{ building['number'] }}">Корпус {{ building["number"] }}</a></td>
+	  <td>{{ building["floors_count"] }}</td>
+	  <td>{{ building["address"] }}</td>
 	</tr>
+	{% if current_user.is_authenticated %}
+	<tr>
+	  <td colspan="2"><a href="/change_building/{{ building['number'] }}" class="btn btn-warning">
+	    Изменить
+	  </a><td/>
+	  <td colspan="2"><a href="/delete_building/{{ building['number'] }}" class="btn btn-danger">
+	    Удалить
+	  </a></td>
+	</tr>
+	{% endif %}
 	{% endfor %}
       </tbody>
     </table>
-    {% if current_user.is_authenticated %}
-    <a href="/add_building" class="btn btn-primary">
-      Добавить корпус
-    </a>
-    {% endif %}
   </div>
 </div>
 {% endblock %}

@@ -10,3 +10,5 @@ class Building(SqlAlchemyBase):
     number = sqlalchemy.Column(sqlalchemy.Integer, index=True, unique=True)
     address = sqlalchemy.Column(sqlalchemy.String, unique=True)
     floors_count = sqlalchemy.Column(sqlalchemy.Integer)
+
+    filepath = sqlalchemy.Column(sqlalchemy.String)

@@ -15,7 +15,7 @@
   <body>
     <header>
       <nav class="navbar navbar-light bg-light">
-        <h1>Выбор корпуса</h1>
+        <h1>Инвентарь</h1>
 	{% if current_user.is_authenticated %}
 	<p>{{ current_user.name }}</p>
 	<a class="navbar-brand" href="/logout">Выйти</a>
@@ -26,7 +26,7 @@
 	{% endif %}
       </nav>
     </header>
-    <main role="main" class="container-lg">
+    <main role="main" class="container-xl">
       {% block content %}{% endblock %}
     </main>
   </body>

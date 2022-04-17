@@ -1,37 +1,50 @@
 {% extends "base.html" %}
 
+{% block head %}
+{% endblock %}
+
 {% block content %}
-<h1>Добавление корпуса</h1>
-<form action="" method="post">
-    {{ form.hidden_tag() }}
-    <p>
-        {{ form.number.label }}<br>
-        {{ form.number(class="form-control") }}<br>
-        {% for error in form.number.errors %}
-            <p content="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.floors_count.label }}<br>
-        {{ form.floors_count(class="form-control") }}<br>
-        {% for error in form.floors_count.errors %}
-            <p content="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.address.label }}<br>
-        {{ form.address(class="form-control") }}<br>
-        {% for error in form.address.errors %}
-            <p content="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
-    <p content="alert alert-danger" role="alert">{{message}}</p>
-</form>
+<h1>Корпус {{ building.number }}</h1>
+<div class="row">
+  {% if building.filepath %}
+  <div class="col-md">
+    <img src="{{ url_for('static', filename = building.filepath) }}" class="rounded d-block"/>
+  </div>
+  {% endif %}
+  <div class="col-md">
+    {% if current_user.is_authenticated %}
+    <a href="/add_floor" class="btn btn-primary my-3">
+      Добавить этаж
+    </a>
+    {% endif %}
+    <table class="table table-sm table-hover">
+      <thead>
+	<tr>
+	  <th scope="col">#</th>
+	  <th scope="col">Номер этажа</th>
+	  <th scope="col">Количество кабинетов</th>
+	</tr>
+      </thead>
+      <tbody>
+	{% for floor in floors %}
+	<tr>
+	  <th scope="row">{{ loop.index }}</th>
+	  <td><a href="/building/{{ building.number }}/{{ floor.number }}">Этаж {{ floor.number }}</a></td>
+	  <td>{{ floor.rooms_count }}</td>
+	</tr>
+	{% if current_user.is_authenticated %}
+	<tr>
+	  <td colspan="2"><a href="/change_floor/{{ building.number }}/{{ floor.number }}" class="btn btn-warning">
+	    Изменить
+	  </a><td/>
+	  <td colspan="2"><a href="/delete_floor/{{ building.number }}/{{ floor.number }}" class="btn btn-danger">
+	    Удалить
+	  </a></td>
+	</tr>
+	{% endif %}
+	{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

@@ -10,6 +10,8 @@ class Item(SqlAlchemyBase):
                            primary_key=True, autoincrement=True)
     room_id = sqlalchemy.Column(sqlalchemy.Integer, 
                                 sqlalchemy.ForeignKey("rooms.id"))
+    building_number = sqlalchemy.Column(sqlalchemy.Integer)
+    floor_number = sqlalchemy.Column(sqlalchemy.Integer)
     count = sqlalchemy.Column(sqlalchemy.Integer)
     item_type = sqlalchemy.Column(sqlalchemy.Integer, 
                                   sqlalchemy.ForeignKey("types.id"))
