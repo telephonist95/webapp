@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Добавление этажа</h1>
+<form enctype="multipart/form-data" action="" method="post">
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.building_number.label }}<br>
+        {{ form.building_number(class="form-control") }}<br>
+        {% for error in form.building_number.errors %}
+            <p content="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.number.label }}<br>
+        {{ form.number(class="form-control") }}<br>
+        {% for error in form.number.errors %}
+            <p content="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.rooms_count.label }}<br>
+        {{ form.rooms_count(class="form-control") }}<br>
+        {% for error in form.rooms_count.errors %}
+            <p content="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.image.label }}<br>
+        {{ form.image(class="form-control") }}<br>
+        {% for error in form.image.errors %}
+            <p content="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.rooms_coords.label }}<br>
+        {{ form.rooms_coords(class="form-control") }}<br>
+        {% for error in form.rooms_coords.errors %}
+            <p content="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+    <p content="alert alert-danger" role="alert">{{message}}</p>
+</form>
+{% endblock %}

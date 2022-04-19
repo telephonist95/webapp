@@ -10,6 +10,7 @@ from data.item import Item
 from forms.login_form import LoginForm
 from forms.register_form import RegisterForm
 from forms.building_form import BuildingForm
+from forms.floor_form import FloorForm
 import os
 
 app = Flask(__name__)
@@ -195,6 +196,80 @@ def delete_floor(building_number, floor_number):
     db_sess.query(Item).filter(Item.building_number == building_number, Item.floor_number == floor_number).delete()
     db_sess.commit()
     return redirect('/building/building_number')
+
+
+@app.route('/add_floor/<int:building_number>',  methods=['GET', 'POST'])
+@login_required
+def add_building(building_number):
+    form = FloorForm()
+    form.building_number.data = building_number
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        if db_sess.query(Floor).filter(Floor.building_number == building_number, Floor.number == form.number.data).first():
+            return render_template('building.html', title='Добавление этажа',
+                                   form=form,
+                                   message="Такой этаж уже есть")
+        floor = Floor()
+        floor.building_number = building_number
+        floor.number = form.number.data
+        floor.rooms_count = form.rooms_count.data
+        floor.rooms_coords = form.rooms_coords.data
+        if form.image.data:
+            image_data = request.files[form.image.name].read()
+            filename = f"static/{form.image.data.filename}"
+            with open(filename, 'wb') as file:
+                file.write(image_data)
+            building.filepath = form.image.data.filename
+        db_sess.add(building)
+        db_sess.commit()
+        return redirect('/')
+    return render_template('add_floor.html', title='Добавление этажа', 
+                           form=form)
+
+
+@app.route('/change_floor/<int:building_number>/<int:number>', methods=['GET', 'POST'])
+@login_required
+def change_floor(building_number, number):
+    form = BuildingForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        floor = db_sess.query(Floor).filter(Floor.number == number, Floor.building_number = building_number).first()
+        if floor:
+            form.number.data = floor.number
+            form.rooms_count.data = building.rooms_count
+            form.rooms_coords.data = building.rooms_coords
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        floor = db_sess.query(Floor).filter(Floor.number == number, Floor.building_number = building_number).first()
+        exists = db_sess.query(Floor).filter(Floor.number == form.number.data, Floor.building_number = form.building_number.data).first()
+        if floor and (not exists or floor.number == form.number.data):
+            rooms = db_sess.query(Room).filter(Room.building_number == building_number, Room.floor_number == number).all()
+            items = db_sess.query(Item).filter(Item.building_number == building_number, Item.floor_number == number).all()
+            floor.building_number = form.building_number.data
+            floor.number = form.number.data
+            floor.rooms_count = form.rooms_count.data
+            floor.rooms_coords = form.rooms_coords.data
+            for room in rooms:
+                room.building_number = building.number
+            for item in items:
+                item.building_number = building.number
+            if form.image.data:
+                if building.filepath and os.path.exists(f"static/{building.filepath}"):
+                    os.remove(f"static/{building.filepath}")
+                image_data = request.files[form.image.name].read()
+                filename = f"static/{form.image.data.filename}"
+                with open(filename, 'wb') as file:
+                    file.write(image_data)
+                building.filepath = form.image.data.filename
+            db_sess.commit()
+            return redirect('/')
+        else:
+            abort(404)
+    return render_template('add_building.html',
+                           title='Редактирование корпуса',
+                           form=form)
 
 
 if __name__ == '__main__':
