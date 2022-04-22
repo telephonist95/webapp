@@ -5,15 +5,6 @@
 <form enctype="multipart/form-data" action="" method="post">
     {{ form.hidden_tag() }}
     <p>
-        {{ form.building_number.label }}<br>
-        {{ form.building_number(class="form-control") }}<br>
-        {% for error in form.building_number.errors %}
-            <p content="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>
         {{ form.number.label }}<br>
         {{ form.number(class="form-control") }}<br>
         {% for error in form.number.errors %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<h1>Корпус {{ building.number }}, этаж {{ floor.number }}</h1>
+<div class="row">
+  {% if floor.filepath %}
+  <map name="map">
+    {% for rect in floor.rooms_coords.split(';') %}
+    {% set params = rect.split(':') %}
+    <area shape="rect"
+	  href="building/{{ building.number }}/{{ floor.number }}/{{ params[0] }}"
+	  coords="{{ params[1] }}"/>
+    {% endfor %}
+  </map>
+  <div class="col-md">
+    <img usemap="#map" src="{{ url_for('static', filename = floor.filepath) }}" class="rounded d-block"/>
+  </div>
+  {% endif %}
+  <div class="col-md">
+    {% if current_user.is_authenticated %}
+    <a href="/add_room/{{ building.number }}/{{ floor.number }}" class="btn btn-primary my-3">
+      Добавить кабинет
+    </a>
+    {% endif %}
+    <table class="table table-sm table-hover">
+      <thead>
+	<tr>
+	  <th scope="col">#</th>
+	  <th scope="col">Номер кабинета</th>
+	</tr>
+      </thead>
+      <tbody>
+	{% for room in rooms %}
+	<tr>
+	  <th scope="row">{{ loop.index }}</th>
+	  <td><a href="/building/{{ building.number }}/{{ floor.number }}/{{ room.number }}">Этаж {{ room.number }}</a></td>
+	</tr>
+	{% if current_user.is_authenticated %}
+	<tr>
+	  <td colspan="2"><a href="/change_room/{{ building.number }}/{{ floor.number }}/{{ room.number }}" class="btn btn-warning">
+	    Изменить
+	  </a><td/>
+	  <td colspan="2"><a href="/delete_room/{{ building.number }}/{{ floor.number }}/{{ room.number }}" class="btn btn-danger">
+	    Удалить
+	  </a></td>
+	</tr>
+	{% endif %}
+	{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
