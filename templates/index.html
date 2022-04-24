@@ -33,17 +33,15 @@
 	  <td><a href="/building/{{ building['number'] }}">Корпус {{ building["number"] }}</a></td>
 	  <td>{{ building["floors_count"] }}</td>
 	  <td>{{ building["address"] }}</td>
-	</tr>
-	{% if current_user.is_authenticated %}
-	<tr>
-	  <td colspan="2"><a href="/change_building/{{ building['number'] }}" class="btn btn-warning">
-	    Изменить
+	  {% if current_user.is_authenticated %}
+	  <td><a href="/change_building/{{ building['number'] }}" class="btn btn-warning">
+	      Изменить
 	  </a><td/>
-	  <td colspan="2"><a href="/delete_building/{{ building['number'] }}" class="btn btn-danger">
-	    Удалить
+	  <td><a href="/delete_building/{{ building['number'] }}" class="btn btn-danger">
+	      Удалить
 	  </a></td>
+	  {% endif %}
 	</tr>
-	{% endif %}
 	{% endfor %}
       </tbody>
     </table>

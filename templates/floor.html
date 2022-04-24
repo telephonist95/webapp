@@ -11,7 +11,7 @@
     {% for rect in floor.rooms_coords.split(';') %}
     {% set params = rect.split(':') %}
     <area shape="rect"
-	  href="building/{{ building.number }}/{{ floor.number }}/{{ params[0] }}"
+	  href="/building/{{ building.number }}/{{ floor.number }}/{{ params[0] }}"
 	  coords="{{ params[1] }}"/>
     {% endfor %}
   </map>
@@ -36,18 +36,16 @@
 	{% for room in rooms %}
 	<tr>
 	  <th scope="row">{{ loop.index }}</th>
-	  <td><a href="/building/{{ building.number }}/{{ floor.number }}/{{ room.number }}">Этаж {{ room.number }}</a></td>
-	</tr>
-	{% if current_user.is_authenticated %}
-	<tr>
-	  <td colspan="2"><a href="/change_room/{{ building.number }}/{{ floor.number }}/{{ room.number }}" class="btn btn-warning">
-	    Изменить
+	  <td><a href="/building/{{ building.number }}/{{ floor.number }}/{{ room.number }}">Кабинет {{ room.number }}</a></td>
+	  {% if current_user.is_authenticated %}
+	  <td><a href="/change_room/{{ building.number }}/{{ floor.number }}/{{ room.number }}" class="btn btn-warning">
+	      Изменить
 	  </a><td/>
-	  <td colspan="2"><a href="/delete_room/{{ building.number }}/{{ floor.number }}/{{ room.number }}" class="btn btn-danger">
-	    Удалить
+	  <td><a href="/delete_room/{{ building.number }}/{{ floor.number }}/{{ room.number }}" class="btn btn-danger">
+	      Удалить
 	  </a></td>
+	  {% endif %}
 	</tr>
-	{% endif %}
 	{% endfor %}
       </tbody>
     </table>

@@ -11,5 +11,3 @@ class Room(SqlAlchemyBase):
     building_number = sqlalchemy.Column(sqlalchemy.Integer)
     floor_number = sqlalchemy.Column(sqlalchemy.Integer)
     number = sqlalchemy.Column(sqlalchemy.Integer)
-
-    items = orm.relation("Item", back_populates='room')

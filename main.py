@@ -7,10 +7,12 @@ from data.building import Building
 from data.floor import Floor
 from data.room import Room
 from data.item import Item
+from data.type import Type
 from forms.login_form import LoginForm
 from forms.register_form import RegisterForm
 from forms.building_form import BuildingForm
 from forms.floor_form import FloorForm
+from forms.room_form import RoomForm
 import os
 
 app = Flask(__name__)
@@ -220,6 +222,13 @@ def add_floor(building_number):
                 file.write(image_data)
             floor.filepath = form.image.data.filename
         db_sess.add(floor)
+        for room_stats in floor.rooms_coords.split(';'):
+            room_number = int(room_stats.split(':')[0])
+            room = Room()
+            room.building_number = building_number
+            room.floor_number = floor.number
+            room.number = room_number
+            db_sess.add(room)
         db_sess.commit()
         return redirect(f'/building/{building_number}')
     return render_template('add_floor.html', title='Добавление этажа', 
@@ -242,7 +251,7 @@ def change_floor(building_number, number):
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         floor = db_sess.query(Floor).filter(Floor.number == number, Floor.building_number == building_number).first()
-        exists = db_sess.query(Floor).filter(Floor.number == form.number.data).first()
+        exists = db_sess.query(Floor).filter(Floor.number == form.number.data, Floor.building_number == building_number).first()
         if floor and (not exists or floor.number == form.number.data):
             rooms = db_sess.query(Room).filter(Room.building_number == building_number, Room.floor_number == number).all()
             items = db_sess.query(Item).filter(Item.building_number == building_number, Item.floor_number == number).all()
@@ -281,6 +290,88 @@ def floor(building_number, number):
                            building=building,
                            floor=floor,
                            rooms=rooms)
+
+
+@app.route('/delete_room/<int:building_number>/<int:floor_number>/<int:room_number>')
+@login_required
+def delete_room(building_number, floor_number, room_number):
+    db_sess = db_session.create_session()
+    db_sess.query(Room).filter(Room.building_number == building_number, Room.floor_number == floor_number, Room.number == room_number).delete()
+    db_sess.query(Item).filter(Item.building_number == building_number, Item.floor_number == floor_number, Item.room_number == room_number).delete()
+    db_sess.commit()
+    return redirect(f'/building/{building_number}/{floor_number}')
+
+
+@app.route('/add_room/<int:building_number>/<int:floor_number>',  methods=['GET', 'POST'])
+@login_required
+def add_room(building_number, floor_number):
+    form = RoomForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        if db_sess.query(Room).filter(Room.building_number == building_number, Room.floor_number == floor_number, Room.number == form.number.data).first():
+            return render_template('add_room.html', title='Добавление этажа',
+                                   form=form,
+                                   message="Такой кабинет уже есть")
+        room = Room()
+        room.building_number = building_number
+        room.floor_number = floor_number
+        room.number = form.number.data
+        db_sess.add(room)
+        db_sess.commit()
+        return redirect(f'/building/{building_number}/{floor_number}')
+    return render_template('add_room.html', title='Добавление кабинета', 
+                           form=form)
+
+
+@app.route('/change_room/<int:building_number>/<int:floor_number>/<int:room_number>', methods=['GET', 'POST'])
+@login_required
+def change_room(building_number, floor_number, room_number):
+    form = RoomForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        room = db_sess.query(Room).filter(Room.number == room_number, Room.building_number == building_number, Room.floor_number == floor_number).first()
+        if room:
+            form.number.data = room.number
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        room = db_sess.query(Room).filter(Room.number == room_number, Room.building_number == building_number, Room.floor_number == floor_number).first()
+        exists = db_sess.query(Room).filter(Room.number == form.number.data, Room.building_number == building_number, Room.floor_number == floor_number).first()
+        if room and (not exists or room.number == form.number.data):
+            items = db_sess.query(Item).filter(Item.building_number == building_number, Item.floor_number == floor_number, Item.room_number == room_number).all()
+            room.number = form.number.data
+            for item in items:
+                item.room_number = room.number
+            db_sess.commit()
+            return redirect(f'/building/{building_number}/{floor_number}')
+        else:
+            abort(404)
+    return render_template('add_room.html',
+                           title='Редактирование кабинета',
+                           form=form)
+
+
+
+@app.route('/building/<int:building_number>/<int:floor_number>/<int:room_number>')
+def room(building_number, floor_number, room_number):
+    db_sess = db_session.create_session()
+    building = db_sess.query(Building).filter(Building.number == building_number).first()
+    floor = db_sess.query(Floor).filter(Floor.building_number == building_number, Floor.number == floor_number).first()
+    room = db_sess.query(Room).filter(Room.building_number == building_number, Room.floor_number == floor_number, Room.number == room_number).first()
+    items = db_sess.query(Item).filter(Item.building_number == building_number, Item.floor_number == floor_number, Item.room_number == room_number).all()
+    types = db_sess.query(Type).all()
+    types_dict = {
+        type.id: type.name
+        for type in types
+    }
+    return render_template('room.html',
+                           title=f'Кабинет {room_number}',
+                           building=building,
+                           floor=floor,
+                           room=room,
+                           items=items,
+                           types=types_dict)
 
 
 if __name__ == '__main__':

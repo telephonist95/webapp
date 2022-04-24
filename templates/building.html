@@ -31,17 +31,15 @@
 	  <th scope="row">{{ loop.index }}</th>
 	  <td><a href="/building/{{ building.number }}/{{ floor.number }}">Этаж {{ floor.number }}</a></td>
 	  <td>{{ floor.rooms_count }}</td>
-	</tr>
-	{% if current_user.is_authenticated %}
-	<tr>
-	  <td colspan="2"><a href="/change_floor/{{ building.number }}/{{ floor.number }}" class="btn btn-warning">
-	    Изменить
+	  {% if current_user.is_authenticated %}
+	  <td><a href="/change_floor/{{ building.number }}/{{ floor.number }}" class="btn btn-warning">
+	      Изменить
 	  </a><td/>
-	  <td colspan="2"><a href="/delete_floor/{{ building.number }}/{{ floor.number }}" class="btn btn-danger">
-	    Удалить
+	  <td><a href="/delete_floor/{{ building.number }}/{{ floor.number }}" class="btn btn-danger">
+	      Удалить
 	  </a></td>
+	  {% endif %}
 	</tr>
-	{% endif %}
 	{% endfor %}
       </tbody>
     </table>
