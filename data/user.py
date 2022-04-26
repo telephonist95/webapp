@@ -11,6 +11,7 @@ class User(SqlAlchemyBase, UserMixin):
                            primary_key=True, autoincrement=True)
     email = sqlalchemy.Column(sqlalchemy.String, index=True, unique=True)
     hashed_password = sqlalchemy.Column(sqlalchemy.String)
+    superadmin = sqlalchemy.Column(sqlalchemy.Boolean)
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)

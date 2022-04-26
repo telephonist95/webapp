@@ -1,21 +1,24 @@
 {% extends "base.html" %}
 
 {% block head %}
+<script src="{{ url_for('static', filename='tableutils.js') }}"></script>
 {% endblock %}
 
 {% block content %}
 
 <h1>Корпус {{ building.number }}, этаж {{ floor.number }}, кабинет {{ room.number }}</h1>
+<a href="/building/{{ building.number }}/{{ floor.number }}" class="btn btn-primary my-3">К этажам</a>
+<a href="/type" class="btn btn-primary my-3">К типам</a>
 <div class="row">
   <div class="col-md">
     <div class="dropdown">
-      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-	Dropdown button
+      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	Типы
       </button>
       <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-	<a class="dropdown-item" href="#">Action</a>
-	<a class="dropdown-item" href="#">Another action</a>
-	<a class="dropdown-item" href="#">Something else here</a>
+	{% for type in types.values() %}
+	<a class="dropdown-item" href="#" onClick="setItemType('tbl', '{{ type }}');return false;">{{ type }}</a>
+	{% endfor %}
       </div>
     </div>
     {% if current_user.is_authenticated %}
@@ -23,7 +26,7 @@
       Добавить позицию
     </a>
     {% endif %}
-    <table class="table table-sm table-hover">
+    <table id="tbl" class="table table-sm table-hover">
       <thead>
 	<tr>
 	  <th scope="col">#</th>
@@ -37,7 +40,7 @@
 	<tr>
 	  <th scope="row">{{ loop.index }}</th>
 	  <td>{{ item.name  }}</td>
-	  <td>{{ types[item.type]  }}</td>
+	  <td>{{ types[item.item_type]  }}</td>
 	  <td>{{ item.count  }}</td>
 	  {% if current_user.is_authenticated %}
 	  <td><a href="/change_item/{{ item.id }}" class="btn btn-warning">

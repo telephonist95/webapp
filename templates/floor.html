@@ -5,6 +5,7 @@
 
 {% block content %}
 <h1>Корпус {{ building.number }}, этаж {{ floor.number }}</h1>
+<a href="/building/{{ building.number }}" class="btn btn-primary my-3">К этажам</a>
 <div class="row">
   {% if floor.filepath %}
   <map name="map">

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<h1>Пользователи</h1>
+<div class="row">
+  <div class="col-md">
+    {% if current_user.is_authenticated %}
+    <a href="/" class="btn btn-primary my-3">К корпусам</a>
+    {% endif %}
+    <table class="table table-sm table-hover">
+      <thead>
+	<tr>
+	  <th scope="col">#</th>
+	  <th scope="col">Логин</th>
+	</tr>
+      </thead>
+      <tbody>
+	{% for user in users %}
+	<tr>
+	  <th scope="row">{{ loop.index }}</th>
+	  <td>{{ user.email }}</td>
+	  {% if current_user.is_authenticated and current_user.superadmin %}
+	  <td><a href="/delete_user/{{ user.id }}" class="btn btn-danger">
+	      Удалить
+	  </a></td>
+	  {% endif %}
+	</tr>
+	{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

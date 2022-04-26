@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<h1>Типы</h1>
+<div class="row">
+  <div class="col-md">
+    {% if current_user.is_authenticated %}
+    <a href="/" class="btn btn-primary my-3">К корпусам</a>
+    <a href="/add_type" class="btn btn-primary my-3">
+      Добавить тип
+    </a>
+    {% endif %}
+    <table class="table table-sm table-hover">
+      <thead>
+	<tr>
+	  <th scope="col">#</th>
+	  <th scope="col">Название</th>
+	</tr>
+      </thead>
+      <tbody>
+	{% for type in types %}
+	<tr>
+	  <th scope="row">{{ loop.index }}</th>
+	  <td>{{ type.name }}</td>
+	  {% if current_user.is_authenticated %}
+	  <td><a href="/change_type/{{ type.id }}" class="btn btn-warning">
+	      Изменить
+	  </a><td/>
+	  <td><a href="/delete_type/{{ type.id }}" class="btn btn-danger">
+	      Удалить
+	  </a></td>
+	  {% endif %}
+	</tr>
+	{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

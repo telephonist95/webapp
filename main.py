@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, request, abort
 from flask_login import LoginManager, login_required
-from flask_login import current_user, login_user, logout_user
+from flask_login import login_user, logout_user, current_user
 from data import db_session
 from data.user import User
 from data.building import Building
@@ -13,12 +13,15 @@ from forms.register_form import RegisterForm
 from forms.building_form import BuildingForm
 from forms.floor_form import FloorForm
 from forms.room_form import RoomForm
+from forms.item_form import ItemForm
+from forms.type_form import TypeForm
 import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'flask_secret_key'
 app.config['UPLOAD_FOLDER'] = 'static/img/'
 administrator_key = 'secret_key'
+superadministrator_key = 'super_secret_key'
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -57,7 +60,6 @@ def login():
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.email == form.email.data).first()
-        print(form.password.data)
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
             return redirect("/")
@@ -75,7 +77,7 @@ def reqister():
             return render_template('register.html', title='Регистрация',
                                    form=form,
                                    message="Пароли не совпадают")
-        if form.key.data != administrator_key:
+        if form.key.data not in [administrator_key, superadministrator_key]:
             return render_template('register.html', title='Регистрация',
                                    form=form,
                                    message="Неверный ключ администратора")
@@ -86,10 +88,30 @@ def reqister():
                                    message="Такой пользователь уже есть")
         user = User(email=form.email.data)
         user.set_password(form.password.data)
+        if form.key.data == superadministrator_key:
+            user.superadmin = True
         db_sess.add(user)
         db_sess.commit()
         return redirect('/login')
     return render_template('register.html', title='Регистрация', form=form)
+
+
+@app.route('/user')
+@login_required
+def user():
+    db_sess = db_session.create_session()
+    users = db_sess.query(User).all()
+    return render_template('user.html', title='Пользователи', users=users)
+
+
+@app.route('/delete_user/<int:id>', methods=['GET', 'POST'])
+@login_required
+def delete_user(id):
+    if current_user.superadmin == True:
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.id == id).delete()
+        db_sess.commit()
+    return redirect("/user")
 
 
 @app.route('/add_building',  methods=['GET', 'POST'])
@@ -123,10 +145,10 @@ def add_building():
 @login_required
 def delete_building(number):
     db_sess = db_session.create_session()
-    building = db_sess.query(Building).filter(Building.number == number).delete()
-    floors = db_sess.query(Floor).filter(Floor.building_number == number).delete()
-    rooms = db_sess.query(Room).filter(Room.building_number == number).delete()
-    items = db_sess.query(Item).filter(Item.building_number == number).delete()
+    db_sess.query(Building).filter(Building.number == number).delete()
+    db_sess.query(Floor).filter(Floor.building_number == number).delete()
+    db_sess.query(Room).filter(Room.building_number == number).delete()
+    db_sess.query(Item).filter(Item.building_number == number).delete()
     db_sess.commit()
     return redirect('/')
 
@@ -259,9 +281,9 @@ def change_floor(building_number, number):
             floor.rooms_count = form.rooms_count.data
             floor.rooms_coords = form.rooms_coords.data
             for room in rooms:
-                room.building_number = floor.number
+                room.floor_number = floor.number
             for item in items:
-                item.building_number = floor.number
+                item.floor_number = floor.number
             if form.image.data:
                 if floor.filepath and os.path.exists(f"static/{floor.filepath}"):
                     os.remove(f"static/{floor.filepath}")
@@ -372,6 +394,137 @@ def room(building_number, floor_number, room_number):
                            room=room,
                            items=items,
                            types=types_dict)
+
+
+@app.route('/delete_item/<int:id>')
+@login_required
+def delete_item(id):
+    db_sess = db_session.create_session()
+    item = db_sess.query(Item).filter(Item.id == id).first()
+    building_number = item.building_number
+    floor_number = item.floor_number
+    room_number = item.room_number
+    db_sess.delete(item)
+    db_sess.commit()
+    return redirect(f'/building/{building_number}/{floor_number}/{room_number}')
+
+
+@app.route('/add_item/<int:building_number>/<int:floor_number>/<int:room_number>',  methods=['GET', 'POST'])
+@login_required
+def add_item(building_number, floor_number, room_number):
+    form = ItemForm()
+    db_sess = db_session.create_session()
+    form.type.choices = [type.name for type in db_sess.query(Type).all()]
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        item = Item()
+        type = db_sess.query(Type).filter(Type.name == form.type.data[:]).first()
+        item.item_type = type.id
+        item.name = form.name.data
+        item.count = form.count.data
+        item.building_number = building_number
+        item.floor_number = floor_number
+        item.room_number = room_number
+        db_sess.add(item)
+        db_sess.commit()
+        return redirect(f'/building/{building_number}/{floor_number}/{room_number}')
+    return render_template('add_item.html', title='Добавление позиции', 
+                           form=form)
+
+
+@app.route('/change_item/<int:id>', methods=['GET', 'POST'])
+@login_required
+def change_item(id):
+    form = ItemForm()
+    db_sess = db_session.create_session()
+    form.type.choices = [type.name for type in db_sess.query(Type).all()]
+    if request.method == "GET":
+        item = db_sess.query(Item).filter(Item.id == id).first()
+        if item:
+            type = db_sess.query(Type).filter(Type.id == item.item_type).first()
+            if type:
+                form.type.data = type.name
+            form.count.data = item.count
+            form.name.data = item.name
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        item = db_sess.query(Item).filter(Item.id == id).first()
+        if item:
+            item.name = form.name.data
+            type = db_sess.query(Type).filter(Type.name == form.type.data[:]).first()
+            item.item_type = type.id
+            item.count = form.count.data
+            db_sess.commit()
+            return redirect(f'/building/{item.building_number}/{item.floor_number}/{item.room_number}')
+        else:
+            abort(404)
+    return render_template('add_item.html',
+                           title='Редактирование позиции',
+                           form=form)
+
+
+@app.route('/add_type',  methods=['GET', 'POST'])
+@login_required
+def add_type ():
+    form = TypeForm()
+    db_sess = db_session.create_session()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        if db_sess.query(Type).filter(Type.name == form.name.data).first():
+            return render_template('add_type.html', title='Добавление типа', message="Такой тип уже есть",
+                                   form=form)
+        type = Type()
+        type.name = form.name.data
+        db_sess.add(type)
+        db_sess.commit()
+        return redirect(f'/type')
+    return render_template('add_type.html', title='Добавление типа', 
+                           form=form)
+
+
+@app.route('/delete_type/<int:id>')
+@login_required
+def delete_type(id):
+    db_sess = db_session.create_session()
+    item = db_sess.query(Type).filter(Type.id == id).first()
+    if item:
+        db_sess.delete(item)
+        db_sess.commit()
+    return redirect('/type')
+
+
+@app.route('/change_type/<int:id>', methods=['GET', 'POST'])
+@login_required
+def change_type(id):
+    form = TypeForm()
+    db_sess = db_session.create_session()
+    if request.method == "GET":
+        type = db_sess.query(Type).filter(Type.id == id).first()
+        if type:
+            form.name.data = type.name
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        type = db_sess.query(Type).filter(Type.id == id).first()
+        if type:
+            type.name = form.name.data
+            db_sess.commit()
+            return redirect(f'/type')
+        else:
+            abort(404)
+    return render_template('add_type.html',
+                           title='Редактирование типа',
+                           form=form)
+
+
+@app.route('/type')
+def type():
+    db_sess = db_session.create_session()
+    types = db_sess.query(Type).all()
+    return render_template('type.html',
+                           title="Типы",
+                           types=types)
 
 
 if __name__ == '__main__':
