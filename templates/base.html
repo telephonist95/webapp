@@ -17,10 +17,10 @@
         <h1>Инвентарь</h1>
 	{% if current_user.is_authenticated %}
 	<p>{{ current_user.name }}</p>
-	<a class="navbar-brand" href="/logout">Выйти</a>
+	<a class="navbar-brand mx-3" href="/logout">Выйти</a>
 	{% else %}
 	<p>
-          <a class="btn btn-success" href="/login">Войти</a>
+          <a class="btn btn-success mx-3" href="/login">Войти</a>
 	</p>
 	{% endif %}
       </nav>

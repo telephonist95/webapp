@@ -8,10 +8,7 @@
 {% block content %}
 <h1>Выбор корпуса</h1>
 <div class="row">
-  <div class="col-md">
-    <div id="map" class="mx-auto shadow p-1 mb-5 bg-body border rounded"></div>
-  </div>
-  <div class="col-md">
+  <div class="col-lg">
     {% if current_user.is_authenticated %}
     <a href="/user" class="btn btn-primary my-3">
       Пользователи
@@ -50,6 +47,9 @@
 	{% endfor %}
       </tbody>
     </table>
+  </div>
+  <div class="col-md">
+    <div id="map" class="mx-auto shadow p-1 mb-5 bg-body border rounded"></div>
   </div>
 </div>
 {% endblock %}

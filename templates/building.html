@@ -5,14 +5,9 @@
 
 {% block content %}
 <h1>Корпус {{ building.number }}</h1>
-<a href="/" class="btn btn-primary my-3">К корпусам</a>
 <div class="row">
-  {% if building.filepath %}
   <div class="col-md">
-    <img src="{{ url_for('static', filename = building.filepath) }}" class="rounded d-block"/>
-  </div>
-  {% endif %}
-  <div class="col-md">
+    <a href="/" class="btn btn-primary my-3">К корпусам</a>
     {% if current_user.is_authenticated %}
     <a href="/add_floor/{{ building.number }}" class="btn btn-primary my-3">
       Добавить этаж
@@ -45,5 +40,10 @@
       </tbody>
     </table>
   </div>
+  {% if building.filepath %}
+  <div class="col-md">
+    <img src="{{ url_for('static', filename = building.filepath) }}" class="rounded d-block"/>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
